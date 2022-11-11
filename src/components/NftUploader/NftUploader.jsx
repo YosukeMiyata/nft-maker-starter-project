@@ -10,21 +10,25 @@ import twitterLogo from "./assets/twitter-logo.svg";
 import LoadingSpinner from "./LoadingSpiner";
 //import SimpleConfirm from '@kamiya-kei/simple-confirm';
 import "./NftUploader.css";
+import { NFTStorage, File } from 'nft.storage'
+import mime from 'mime'
+const NFT_STORAGE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweGNFRkRCYWI4NGE4RjhhOWEyQjM0RTBkNmQ5RTFhMjdCMUUwNzYwMjEiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTY2ODA4MzgxNDI0NiwibmFtZSI6Ikp1aWxsaWFyZCJ9.u2WR7t81CGk9JvB13aEy4m4IJaeP_0zCkk-lKSqFPgk'
 
 const TWITTER_HANDLE = "juilliard_inst";
 const TWITTER_LINK = `https://twitter.com/${TWITTER_HANDLE}`;
 const OPENSEA_LINK = "https://testnets.opensea.io/0x4833C2fB6F00787c7F5f60a7F1a8aD9e191648C8";
-const MAX_TOTAL_MINT_COUNT = 20;
+const MAX_TOTAL_MINT_COUNT = 100;
 // 0x4 は　Rinkeby の ID です。
 const EthereumMainNetworkChainId = "0x1";
 const RopstenTestNetworkChainId = "0x3";
-const RinkebyTestNetworkChainId = "0x4";
 const GoerliTestNetworkChainId = "0x5";
 const KovanTestNetworkChainId = "0x2a";
+const MaticPoygonMainNetworkChainId = "0x89";
+const MaticMumbaiTestNetworkChainId = "0x13881";
 let _tokenIds;
 
-const CONTRACT_ADDRESS = "0x2d90fe2b07e5fa7d48D9Ec9c67f4E2Ee9cAf3f37";
-const API_KEY ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweDAyMkZhMDVlN0IwMWRhMzk1Zjc1ZWIyMGVhYjY4QTFhOWIwQzNlMTciLCJpc3MiOiJ3ZWIzLXN0b3JhZ2UiLCJpYXQiOjE2NTgzMTY5OTkzMTYsIm5hbWUiOiJKdWlsbGlhcmQifQ.ec8NTQvUuf6tvH0jqNfEhU-tFCVVDx6ZDlnNfUjtbl4";
+const CONTRACT_ADDRESS = "0x5A01dC12161bf7A5B42314591bbe2aB46635561f";
+const API_KEY ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkaWQ6ZXRocjoweGNFRkRCYWI4NGE4RjhhOWEyQjM0RTBkNmQ5RTFhMjdCMUUwNzYwMjEiLCJpc3MiOiJuZnQtc3RvcmFnZSIsImlhdCI6MTY2ODA4MzgxNDI0NiwibmFtZSI6Ikp1aWxsaWFyZCJ9.u2WR7t81CGk9JvB13aEy4m4IJaeP_0zCkk-lKSqFPgk";
 
 const NftUploader = () => {
   /*
@@ -37,6 +41,9 @@ const NftUploader = () => {
   const [totalMintCount, setTotalMintCount] = useState("");
 
   const [isLoading, setIsLoading] = useState(false);
+
+  //顔写真登録フラグを保存する変数とメソッド
+  const [value, setValue] = useState("");
 
   const checkIfWalletIsConnected = async () => {
     const { ethereum } = window;
@@ -51,22 +58,25 @@ const NftUploader = () => {
     console.log("Connected to chain " + chainId);
     switch( chainId ){
       case EthereumMainNetworkChainId: 
-            alert("You are connected to the Ethereum Main Network! Could you please connect to the Rinkeby Test Network?");
+            alert("You are connected to the Ethereum Main Network! Could you please connect to the Mumbai Test Network?");
             break;
       case RopstenTestNetworkChainId: 
-            alert("You are connected to the Ropsten Test Network! Could you please connect to the Rinkeby Test Network?");
+            alert("You are connected to the Ropsten Test Network! Could you please connect to the Mumbai Test Network?");
             break;
-      case RinkebyTestNetworkChainId: 
-            console.log("You are connected to the Rinkeby Test Network!");
+      case MaticPoygonMainNetworkChainId: 
+            alert("You are connected to the Poygon Main Network! Could you please connect to the Mumbai Test Network?");
+            break;
+      case MaticMumbaiTestNetworkChainId: 
+            console.log("You are connected to the Mumbai Test Network!");
             break;
       case GoerliTestNetworkChainId: 
-            alert("You are connected to the Goerli Test Network! Could you please connect to the Rinkeby Test Network?");
+            alert("You are connected to the Goerli Test Network! Could you please connect to the Mumbai Test Network?");
             break;
       case KovanTestNetworkChainId: 
-            alert("You are connected to the Kovan Test Network! Could you please connect to the Rinkeby Test Network?");
+            alert("You are connected to the Kovan Test Network! Could you please connect to the Mumbai Test Network?");
             break;
       default:
-            alert("You are not connected to the Rinkeby Test Network! Could you please connect to the Rinkeby Test Network?");
+            alert("You are not connected to the Mumbai Test Network! Could you please connect to the Mumbai Test Network?");
             break;
     }
 
@@ -110,11 +120,11 @@ const NftUploader = () => {
         return;
       }
 
-      if (window.ethereum.networkVersion !== RinkebyTestNetworkChainId) {
+      if (window.ethereum.networkVersion !== MaticMumbaiTestNetworkChainId) {
         try {
           await window.ethereum.request({
             method: 'wallet_switchEthereumChain',
-            params: [{ chainId: `0x${Number(4).toString(16)}` }]
+            params: [{ chainId: `0x${Number(80001).toString(16)}` }]
           });
         } catch (err) {
             // This error code indicates that the chain has not been added to MetaMask
@@ -123,11 +133,11 @@ const NftUploader = () => {
               method: 'wallet_addEthereumChain',
               params: [
                 {
-                  chainName: 'Rinkeby',
-                  chainId: `0x${Number(4).toString(16)}`,
-                  nativeCurrency: { name: 'Rinkeby Ether', decimals: 18, symbol: 'RIN' },
-                  rpcUrls: ["https://rinkeby.infura.io/v3/"],
-                  blockExplorerUrls: ["https://rinkeby.etherscan.io"]
+                  chainName: 'Matic Testnet Mumbai',
+                  chainId: `0x${Number(80001).toString(16)}`,
+                  nativeCurrency: { name: 'Matic', symbol: 'MATIC', decimals: 18 },
+                  rpcUrls: ["https://rpc-mumbai.maticvigil.com/"],
+                  blockExplorerUrls: ["https://mumbai.polygonscan.com/"]
                 }
               ]
             });
@@ -220,13 +230,13 @@ const NftUploader = () => {
           console.log("Mining...please wait.");
           await nftTxn.wait();
           console.log(
-            `Mined, see transaction: https://rinkeby.etherscan.io/tx/${nftTxn.hash}`
+            `Mined!`
           );
           setIsLoading(false);
           /* コントラクトからgetTokenIdsメソッドを呼び出す */
           _tokenIds = await connectedContract.getTokenIds();
           alert(
-            `あなたのウォレットに NFT を送信しました。OpenSea に表示されるまで最大で10分かかることがあります。NFT へのリンクはこちらです: https://testnets.opensea.io/assets/${CONTRACT_ADDRESS}/${_tokenIds.toNumber()-1}`
+            `あなたのウォレットに NFT を送信しました。OpenSea に表示されるまで最大で10分かかることがあります。NFT へのリンクはこちらです: https://testnets.opensea.io/assets/mumbai/${CONTRACT_ADDRESS}/${_tokenIds.toNumber()-1}`
           );
         } else {
           console.log("Ethereum object doesn't exist!");
@@ -244,14 +254,24 @@ const NftUploader = () => {
   //const imageToNFT = () => {
     
     //document.getElementById("p1").style.display ="none";  
-    setIsLoading(true);
+    //setIsLoading(true);
     if( totalMintCount < MAX_TOTAL_MINT_COUNT ){
-      connectWallet();
-      const client = new Web3Storage({ token: API_KEY })
-      const image = e.target
-      console.log(image)
+      //connectWallet();
+      //const client = new Web3Storage({ token: API_KEY })
+      //const image = e.target
+      //console.log(image)
+      if (e.target.files && e.target.files[0]) {
+        const file = e.target.files[0]
+        const reader = new FileReader()
+        reader.onload = (e) => {
+          console.log(e.target.result)
+          setValue(e.target.result)
+        }
+        reader.readAsDataURL(file)
+        //setIsVisiblePictureValue(true) 
+      }
 
-      const rootCid = await client.put(image.files, {
+      /*const rootCid = await client.put(image.files, {
           name: 'experiment',
           maxRetries: 3
       })
@@ -260,12 +280,42 @@ const NftUploader = () => {
       for (const file of files) {
         console.log("file.cid:",file.cid)
         askContractToMintNft(file.cid)
-      }
+      }*/
     }else{
       alert(`I'm terribly sorry the total number of NFTs minted has reached the upper limit. Could you please wait next updating on Sep 7th, 2022?`);
       setIsLoading(false);
     }
     
+  }
+
+  const storeNFT = async (image) => {
+    // create a new NFTStorage client using our API key
+    const nftstorage = new NFTStorage({ token: NFT_STORAGE_KEY })
+
+    // call client.store, passing in the image & metadata
+    return nftstorage.storeBlob(image);
+  };
+
+  const useNFTstrage = async (e) => {
+    
+    setIsLoading(true);
+    console.log("Your picture is uploading!");
+    
+    if( totalMintCount < MAX_TOTAL_MINT_COUNT ){
+    
+        const images = e.target.files;
+
+      for (const image of images) {
+        const cid = await storeNFT(image);
+        console.log("Your picture uploaded!");
+        console.log(cid);
+        askContractToMintNft(cid);
+      }
+
+    }else{
+      alert(`I'm terribly sorry the total number of NFTs minted has reached the upper limit. Could you please wait next updating on Sep 7th, 2022?`);
+      setIsLoading(false);
+    }
   }
 
   const renderFooterContainer = () => (
@@ -301,12 +351,12 @@ const NftUploader = () => {
           <img src={ImageLogo} alt="imagelogo" />
           <p className="sub-text">Drag and Drop files here!</p>
         </div>
-        <input className="nftUploadInput" multiple name="imageURL" type="file" accept=".jpg , .jpeg , .png" onChange={imageToNFT} />
+        <input className="nftUploadInput" multiple name="imageURL" type="file" accept=".jpg , .jpeg , .png" onChange={useNFTstrage} />
       </div>
       <p>or</p>
       <Button variant="contained" className="cta-button connect-wallet-button">
       click to select files!
-        <input className="nftUploadInput" type="file" accept=".jpg , .jpeg , .png" onChange={imageToNFT} />
+        <input className="nftUploadInput" type="file" accept=".jpg , .jpeg , .png" onChange={useNFTstrage} />
       </Button>
     </div>
   );
@@ -333,7 +383,7 @@ const NftUploader = () => {
     </div>
   );
   
-  /*
+  /* https://bafybeifo6olbjp5hyayo5iawktdvq426ggms53ynvnxy4fd3na3muek234.ipfs.nftstorage.link/
    * ページがロードされたときに useEffect()内の関数が呼び出されます。
    */
   useEffect(() => {
